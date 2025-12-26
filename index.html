@@ -70,6 +70,51 @@
             80% { transform: translate(2px, -2px) }
             100% { transform: translate(0) }
         }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; backdrop-filter: blur(0px); }
+            to { opacity: 1; backdrop-filter: blur(12px); }
+        }
+
+        @keyframes modalFadeOut {
+            from { opacity: 1; backdrop-filter: blur(12px); }
+            to { opacity: 0; backdrop-filter: blur(0px); }
+        }
+
+        @keyframes modalSlideUp {
+            from { opacity: 0; transform: scale(0.9) translateY(30px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        @keyframes modalSlideDown {
+            from { opacity: 1; transform: scale(1) translateY(0); }
+            to { opacity: 0; transform: scale(0.9) translateY(20px); }
+        }
+
+        #download-modal {
+            display: none;
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #download-modal.active {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+            animation: modalFadeIn 0.4s ease forwards;
+        }
+
+        #download-modal.active .modal-content {
+            animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        #download-modal.closing {
+            animation: modalFadeOut 0.3s ease forwards;
+        }
+
+        #download-modal.closing .modal-content {
+            animation: modalSlideDown 0.3s ease forwards;
+        }
     </style>
 </head>
 <body class="bg-void-darker text-slate-300 font-sans selection:bg-neon-purple selection:text-white">
@@ -87,7 +132,7 @@
                         <a href="#features" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Features</a>
                         <a href="#install" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Installation</a>
                         <a href="#community" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Contribute</a>
-                        <a href="https://modrinth.com/plugin/genesisx" target="_blank" class="bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/50 px-4 py-2 rounded-md text-sm font-medium transition-all">Download .jar</a>
+                        <button onclick="openModal()" class="bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/50 px-4 py-2 rounded-md text-sm font-medium transition-all">Download .jar</button>
                     </div>
                 </div>
                 <div class="-mr-2 flex md:hidden">
@@ -102,6 +147,7 @@
                 <a href="#features" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Features</a>
                 <a href="#install" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Installation</a>
                 <a href="#community" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Contribute</a>
+                <button onclick="openModal()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-neon-purple hover:bg-slate-800">Download .jar</button>
             </div>
         </div>
     </nav>
@@ -129,10 +175,10 @@
             </p>
 
             <div class="mt-10 flex justify-center gap-4">
-                <a href="https://modrinth.com/plugin/genesisx" target="_blank" class="px-8 py-3 rounded-lg bg-white text-void-darker font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
+                <button onclick="openModal()" class="px-8 py-3 rounded-lg bg-white text-void-darker font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
                     <i data-lucide="download" class="w-5 h-5"></i>
                     Get GenesisX
-                </a>
+                </button>
                 <a href="https://discord.gg/jr9rC9fQfA" target="_blank" class="px-8 py-3 rounded-lg glass-panel text-white font-semibold hover:bg-slate-800/50 transition-colors flex items-center gap-2">
                     <i data-lucide="message-square" class="w-5 h-5"></i>
                     Join Discord
@@ -266,8 +312,56 @@ api-key: "YOUR_API_KEY_HERE"</pre>
         </p>
     </footer>
 
+    <div id="download-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-void-darker/60 backdrop-blur-0">
+        <div class="modal-content glass-panel max-w-md w-full p-8 rounded-2xl shadow-2xl border-neon-purple/20">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-neon-purple/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i data-lucide="download" class="text-neon-purple w-8 h-8"></i>
+                </div>
+                <h3 class="text-2xl font-bold text-white mb-2 tracking-tight">Access GenesisX</h3>
+                <p class="text-slate-400 mb-8">Select your preferred platform to download the plugin.</p>
+                
+                <div class="flex flex-col gap-3">
+                    <a href="https://modrinth.com/plugin/genesisx" target="_blank" class="w-full py-3.5 rounded-xl bg-[#1BD964] hover:bg-[#1BD964]/90 text-void-darker font-bold transition-all flex items-center justify-center gap-2 group">
+                        <i data-lucide="download-cloud" class="w-5 h-5 group-hover:-translate-y-0.5 transition-transform"></i>
+                        Download from Modrinth
+                    </a>
+                    <a href="https://www.spigotmc.org/resources/genesisx.131152/" target="_blank" class="w-full py-3.5 rounded-xl bg-[#E79A34] hover:bg-[#E79A34]/90 text-void-darker font-bold transition-all flex items-center justify-center gap-2 group">
+                        <i data-lucide="external-link" class="w-5 h-5 group-hover:rotate-12 transition-transform"></i>
+                        Download from SpigotMC
+                    </a>
+                    <button onclick="closeModal()" class="mt-4 text-slate-500 hover:text-white transition-colors text-sm font-medium">
+                        Return to site
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         lucide.createIcons();
+
+        const modal = document.getElementById('download-modal');
+
+        function openModal() {
+            modal.classList.remove('closing');
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.classList.add('closing');
+            
+            setTimeout(() => {
+                modal.classList.remove('active');
+                modal.classList.remove('closing');
+                document.body.style.overflow = 'auto';
+            }, 300);
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
 
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
