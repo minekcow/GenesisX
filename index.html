@@ -24,11 +24,23 @@
                     animation: {
                         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
                         'float': 'float 6s ease-in-out infinite',
+                        'shake': 'shake 0.5s cubic-bezier(.36,.07,.19,.97) both',
+                        'tnt-pulse': 'tnt-pulse 0.5s ease-in-out infinite'
                     },
                     keyframes: {
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-20px)' },
+                        },
+                        shake: {
+                            '10%, 90%': { transform: 'translate3d(-1px, 0, 0)' },
+                            '20%, 80%': { transform: 'translate3d(2px, 0, 0)' },
+                            '30%, 50%, 70%': { transform: 'translate3d(-4px, 0, 0)' },
+                            '40%, 60%': { transform: 'translate3d(4px, 0, 0)' }
+                        },
+                        'tnt-pulse': {
+                            '0%, 100%': { transform: 'scale(1)', filter: 'brightness(1)' },
+                            '50%': { transform: 'scale(1.2)', filter: 'brightness(1.5)' }
                         }
                     }
                 }
@@ -70,247 +82,273 @@
             80% { transform: translate(2px, -2px) }
             100% { transform: translate(0) }
         }
-
         @keyframes modalFadeIn {
             from { opacity: 0; backdrop-filter: blur(0px); }
             to { opacity: 1; backdrop-filter: blur(12px); }
         }
-
         @keyframes modalFadeOut {
             from { opacity: 1; backdrop-filter: blur(12px); }
             to { opacity: 0; backdrop-filter: blur(0px); }
         }
-
         @keyframes modalSlideUp {
             from { opacity: 0; transform: scale(0.9) translateY(30px); }
             to { opacity: 1; transform: scale(1) translateY(0); }
         }
-
         @keyframes modalSlideDown {
             from { opacity: 1; transform: scale(1) translateY(0); }
             to { opacity: 0; transform: scale(0.9) translateY(20px); }
         }
-
         #download-modal {
             display: none;
             opacity: 0;
             pointer-events: none;
         }
-
         #download-modal.active {
             display: flex;
             opacity: 1;
             pointer-events: auto;
             animation: modalFadeIn 0.4s ease forwards;
         }
-
         #download-modal.active .modal-content {
             animation: modalSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
-
         #download-modal.closing {
             animation: modalFadeOut 0.3s ease forwards;
         }
-
         #download-modal.closing .modal-content {
             animation: modalSlideDown 0.3s ease forwards;
         }
+        #main-content {
+            filter: blur(60px);
+            opacity: 0;
+            transition: filter 1s, opacity 1s, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #intro-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            background: #020617;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #intro-overlay.fade-out {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 1.5s ease;
+        }
+        #alpha-banner {
+            transition: transform 1s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        #tnt-entity {
+            position: fixed;
+            z-index: 10002;
+            font-size: 3rem;
+            pointer-events: none;
+        }
     </style>
 </head>
-<body class="bg-void-darker text-slate-300 font-sans selection:bg-neon-purple selection:text-white">
+<body class="bg-void-darker text-slate-300 font-sans selection:bg-neon-purple selection:text-white overflow-hidden transition-all duration-300">
 
-    <nav class="fixed w-full z-50 glass-panel border-b border-slate-800">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="box" class="text-neon-purple h-6 w-6"></i>
-                    <span class="font-bold text-xl tracking-tighter text-white">Genesis<span class="text-neon-cyan">X</span></span>
-                    <span class="ml-2 px-2 py-0.5 rounded text-xs font-mono bg-red-500/10 text-red-400 border border-red-500/20">Experimental v1.0</span>
-                </div>
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8">
-                        <a href="#features" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Features</a>
-                        <a href="#install" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Installation</a>
-                        <a href="#community" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Contribute</a>
-                        <button onclick="openModal()" class="bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/50 px-4 py-2 rounded-md text-sm font-medium transition-all">Download .jar</button>
-                    </div>
-                </div>
-                <div class="-mr-2 flex md:hidden">
-                    <button type="button" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 focus:outline-none">
-                        <i data-lucide="menu"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-        <div class="hidden md:hidden bg-void-dark" id="mobile-menu">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-slate-800">
-                <a href="#features" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Features</a>
-                <a href="#install" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Installation</a>
-                <a href="#community" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Contribute</a>
-                <button onclick="openModal()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-neon-purple hover:bg-slate-800">Download .jar</button>
-            </div>
-        </div>
-    </nav>
+    <div id="intro-overlay">
+        <canvas id="intro-canvas" class="w-full h-full"></canvas>
+    </div>
 
-    <section class="relative pt-32 pb-20 overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none">
-            <div class="absolute top-20 left-1/4 w-96 h-96 bg-neon-purple/20 rounded-full blur-3xl filter opacity-30 animate-pulse-slow"></div>
-            <div class="absolute top-40 right-1/4 w-96 h-96 bg-neon-cyan/20 rounded-full blur-3xl filter opacity-30 animate-pulse-slow" style="animation-delay: 1.5s;"></div>
-        </div>
-
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-sm mb-8">
-                <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
-                <span class="text-slate-400">Experimental Build v1.0</span>
-            </div>
-            
-            <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6">
-                Dream it. <br/>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple to-neon-cyan glitch-text cursor-default">Hallucinate it.</span>
-            </h1>
-            
-            <p class="mt-4 max-w-2xl mx-auto text-xl text-slate-400">
-                The experimental WorldEdit addon that lets AI generate structures in your selected region. 
-                Results may be weird, abstract, or architecturally impossible. That's the feature.
+    <div id="alpha-banner" class="fixed top-0 left-0 w-full z-[60] bg-neon-purple/20 border-b border-neon-purple/40 backdrop-blur-2xl py-2 px-4 -translate-y-full shadow-[0_0_30px_rgba(168,85,247,0.15)]">
+        <div class="max-w-7xl mx-auto flex items-center justify-center gap-3 text-center">
+            <p class="text-xs md:text-sm font-bold text-white tracking-wide uppercase flex items-center gap-2">
+                <span class="flex h-2 w-2 rounded-full bg-neon-purple animate-pulse"></span>
+                <span class="text-neon-purple font-black">Alpha v2.0</span>
+                <span class="hidden md:inline text-slate-500">•</span>
+                <span class="text-neon-cyan">Incoming soon</span>
+                <span class="hidden md:inline text-slate-500">•</span>
+                <span class="text-neon-cyan/80 font-normal normal-case">Enhanced logic, new commands & experimental tweaks</span>
             </p>
-
-            <div class="mt-10 flex justify-center gap-4">
-                <button onclick="openModal()" class="px-8 py-3 rounded-lg bg-white text-void-darker font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
-                    <i data-lucide="download" class="w-5 h-5"></i>
-                    Get GenesisX
-                </button>
-                <a href="https://discord.gg/jr9rC9fQfA" target="_blank" class="px-8 py-3 rounded-lg glass-panel text-white font-semibold hover:bg-slate-800/50 transition-colors flex items-center gap-2">
-                    <i data-lucide="message-square" class="w-5 h-5"></i>
-                    Join Discord
-                </a>
-            </div>
-
+            <button onclick="this.parentElement.parentElement.classList.add('-translate-y-full'); document.getElementById('main-nav').style.top = '0px';" class="ml-4 p-1 hover:bg-white/10 rounded-full transition-all">
+                <i data-lucide="x" class="w-4 h-4 text-slate-400"></i>
+            </button>
         </div>
-    </section>
+    </div>
 
-    <section id="features" class="py-20 bg-void-dark">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-16">
-                <h2 class="text-3xl font-bold text-white">Controlled Chaos</h2>
-                <p class="mt-4 text-slate-400">Harnessing the unpredictability of LLMs for Minecraft architecture.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="glass-panel p-8 rounded-xl hover:border-neon-purple/50 transition-colors group">
-                    <div class="w-12 h-12 bg-neon-purple/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                        <i data-lucide="wand-2" class="text-neon-purple w-6 h-6"></i>
+    <div id="main-content">
+        <nav id="main-nav" class="fixed w-full z-50 glass-panel border-b border-slate-800 transition-all duration-700">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between h-16">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="box" class="text-neon-purple h-6 w-6"></i>
+                        <span class="font-bold text-xl tracking-tighter text-white">Genesis<span class="text-neon-cyan">X</span></span>
+                        <span class="ml-2 px-2 py-0.5 rounded text-xs font-mono bg-red-500/10 text-red-400 border border-red-500/20">Experimental v1.0</span>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Region Based Generation</h3>
-                    <p class="text-slate-400">Fully integrated with WorldEdit. Select your cuboid, run the command, and watch the AI fill the void.</p>
-                </div>
-
-                <div class="glass-panel p-8 rounded-xl hover:border-neon-cyan/50 transition-colors group">
-                    <div class="w-12 h-12 bg-neon-cyan/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                        <i data-lucide="brain-circuit" class="text-neon-cyan w-6 h-6"></i>
+                    <div class="hidden md:block">
+                        <div class="ml-10 flex items-baseline space-x-8">
+                            <a href="#features" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Features</a>
+                            <a href="#install" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Installation</a>
+                            <a href="#community" class="hover:text-neon-cyan transition-colors px-3 py-2 rounded-md text-sm font-medium">Contribute</a>
+                            <button onclick="openModal()" class="bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/50 px-4 py-2 rounded-md text-sm font-medium transition-all">Download .jar</button>
+                        </div>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Multi-Brain Support</h3>
-                    <p class="text-slate-400">Plug in your own API keys. Supports Google Gemini and OpenAI GPT-4 models via <code class="bg-slate-800 px-1 rounded text-xs">config.yml</code>.</p>
-                </div>
-
-                <div class="glass-panel p-8 rounded-xl hover:border-red-500/50 transition-colors group">
-                    <div class="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                        <i data-lucide="flask-conical" class="text-red-400 w-6 h-6"></i>
+                    <div class="-mr-2 flex md:hidden">
+                        <button type="button" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')" class="inline-flex items-center justify-center p-2 rounded-md text-slate-400 hover:text-white hover:bg-slate-700 focus:outline-none">
+                            <i data-lucide="menu"></i>
+                        </button>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2">Experimental Results</h3>
-                    <p class="text-slate-400">The AI doesn't always understand gravity. Buildings might float, merge, or look alien. We call that "art".</p>
                 </div>
             </div>
-        </div>
-    </section>
+            <div class="hidden md:hidden bg-void-dark" id="mobile-menu">
+                <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 border-t border-slate-800">
+                    <a href="#features" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Features</a>
+                    <a href="#install" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Installation</a>
+                    <a href="#community" class="block px-3 py-2 rounded-md text-base font-medium hover:bg-slate-800">Contribute</a>
+                    <button onclick="openModal()" class="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-neon-purple hover:bg-slate-800">Download .jar</button>
+                </div>
+            </div>
+        </nav>
 
-    <section id="install" class="py-20 relative">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-white mb-12 flex items-center gap-3">
-                <i data-lucide="terminal-square" class="text-neon-purple"></i>
-                Installation Protocol
-            </h2>
+        <section class="relative pt-32 pb-20 overflow-hidden">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full z-0 pointer-events-none">
+                <div class="absolute top-20 left-1/4 w-96 h-96 bg-neon-purple/20 rounded-full blur-3xl filter opacity-30 animate-pulse-slow"></div>
+                <div class="absolute top-40 right-1/4 w-96 h-96 bg-neon-cyan/20 rounded-full blur-3xl filter opacity-30 animate-pulse-slow" style="animation-delay: 1.5s;"></div>
+            </div>
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
+                <div id="exp-badge" class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-800/50 border border-slate-700 text-sm mb-8 cursor-help group transition-all" title="Type 'tnt' on your keyboard">
+                    <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+                    <span class="text-slate-400 group-hover:text-neon-purple transition-colors italic">Experimental Build v1.0</span>
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6">
+                    Dream it. <br/>
+                    <span id="hallucinate-btn" onclick="triggerTNT()" class="text-transparent bg-clip-text bg-gradient-to-r from-neon-purple to-neon-cyan glitch-text cursor-pointer select-none">Hallucinate it.</span>
+                </h1>
+                <p class="mt-4 max-w-2xl mx-auto text-xl text-slate-400">
+                    The experimental WorldEdit addon that lets AI generate structures in your selected region. 
+                    Results may be weird, abstract, or architecturally impossible. That's the feature.
+                </p>
+                <div class="mt-10 flex justify-center gap-4">
+                    <button onclick="openModal()" class="px-8 py-3 rounded-lg bg-white text-void-darker font-bold hover:bg-slate-200 transition-colors flex items-center gap-2">
+                        <i data-lucide="download" class="w-5 h-5"></i>
+                        Get GenesisX
+                    </button>
+                    <a href="https://discord.gg/jr9rC9fQfA" target="_blank" class="px-8 py-3 rounded-lg glass-panel text-white font-semibold hover:bg-slate-800/50 transition-colors flex items-center gap-2">
+                        <i data-lucide="message-square" class="w-5 h-5"></i>
+                        Join Discord
+                    </a>
+                </div>
+            </div>
+        </section>
 
-            <div class="space-y-6">
-                <div class="flex gap-4">
-                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-neon-cyan font-bold">1</div>
-                    <div class="flex-grow">
-                        <h4 class="text-lg font-bold text-white">Prerequisites</h4>
-                        <p class="text-slate-400 mt-1">Ensure your server is running <strong>Spigot/Paper 1.20+</strong> and has <strong>WorldEdit</strong> installed.</p>
+        <section id="features" class="py-20 bg-void-dark">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-bold text-white">Controlled Chaos</h2>
+                    <p class="mt-4 text-slate-400">Harnessing the unpredictability of LLMs for Minecraft architecture.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="glass-panel p-8 rounded-xl hover:border-neon-purple/50 transition-colors group">
+                        <div class="w-12 h-12 bg-neon-purple/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <i data-lucide="wand-2" class="text-neon-purple w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Region Based Generation</h3>
+                        <p class="text-slate-400">Fully integrated with WorldEdit. Select your cuboid, run the command, and watch the AI fill the void.</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-xl hover:border-neon-cyan/50 transition-colors group">
+                        <div class="w-12 h-12 bg-neon-cyan/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <i data-lucide="brain-circuit" class="text-neon-cyan w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Multi-Brain Support</h3>
+                        <p class="text-slate-400">Plug in your own API keys. Supports Google Gemini and OpenAI GPT-4 models via <code class="bg-slate-800 px-1 rounded text-xs">config.yml</code>.</p>
+                    </div>
+                    <div class="glass-panel p-8 rounded-xl hover:border-red-500/50 transition-colors group">
+                        <div class="w-12 h-12 bg-red-500/10 rounded-lg flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                            <i data-lucide="flask-conical" class="text-red-400 w-6 h-6"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-white mb-2">Experimental Results</h3>
+                        <p class="text-slate-400">The AI doesn't always understand gravity. Buildings might float, merge, or look alien. We call that "art".</p>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="flex gap-4">
-                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-neon-cyan font-bold">2</div>
-                    <div class="flex-grow">
-                        <h4 class="text-lg font-bold text-white">Inject the Plugin</h4>
-                        <p class="text-slate-400 mt-1">Download <code class="text-neon-purple">GenesisX.jar</code> and drop it into your server's <code class="bg-slate-800 px-1 rounded text-sm">/plugins</code> folder.</p>
+        <section id="install" class="py-20 relative">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-3xl font-bold text-white mb-12 flex items-center gap-3">
+                    <i data-lucide="terminal-square" class="text-neon-purple"></i>
+                    Installation Protocol
+                </h2>
+                <div class="space-y-6">
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-neon-cyan font-bold">1</div>
+                        <div class="flex-grow">
+                            <h4 class="text-lg font-bold text-white">Prerequisites</h4>
+                            <p class="text-slate-400 mt-1">Ensure your server is running <strong>Spigot/Paper 1.20+</strong> and has <strong>WorldEdit</strong> installed.</p>
+                        </div>
                     </div>
-                </div>
-
-                <div class="flex gap-4">
-                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-neon-cyan font-bold">3</div>
-                    <div class="flex-grow">
-                        <h4 class="text-lg font-bold text-white">Configure the Hivemind</h4>
-                        <p class="text-slate-400 mt-1">Start the server once to generate config files. Open <code class="bg-slate-800 px-1 rounded text-sm">plugins/GenesisX/config.yml</code> and paste your API key.</p>
-                        
-                        <div class="mt-4 code-block p-4 rounded-lg overflow-x-auto text-sm font-mono text-slate-300">
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-neon-cyan font-bold">2</div>
+                        <div class="flex-grow">
+                            <h4 class="text-lg font-bold text-white">Inject the Plugin</h4>
+                            <p class="text-slate-400 mt-1">Download <code class="text-neon-purple">GenesisX.jar</code> and drop it into your server's <code class="bg-slate-800 px-1 rounded text-sm">/plugins</code> folder.</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-neon-cyan font-bold">3</div>
+                        <div class="flex-grow">
+                            <h4 class="text-lg font-bold text-white">Configure the Hivemind</h4>
+                            <p class="text-slate-400 mt-1">Start the server once to generate config files. Open <code class="bg-slate-800 px-1 rounded text-sm">plugins/GenesisX/config.yml</code> and paste your API key.</p>
+                            <div class="mt-4 code-block p-4 rounded-lg overflow-x-auto text-sm font-mono text-slate-300">
 <pre># GenesisX Configuration
 provider: "gemini" 
 api-key: "YOUR_API_KEY_HERE"</pre>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-neon-cyan font-bold">4</div>
+                        <div class="flex-grow">
+                            <h4 class="text-lg font-bold text-white">Restart & Generate</h4>
+                            <p class="text-slate-400 mt-1">Restart the server. Select a region with the wand, and command the AI.</p>
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
 
-                <div class="flex gap-4">
-                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center font-mono text-neon-cyan font-bold">4</div>
-                    <div class="flex-grow">
-                        <h4 class="text-lg font-bold text-white">Restart & Generate</h4>
-                        <p class="text-slate-400 mt-1">Restart the server. Select a region with the wand, and command the AI.</p>
+        <section id="community" class="py-20 bg-gradient-to-b from-void-dark to-void-darker border-t border-slate-800">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="inline-block p-3 rounded-full bg-neon-purple/10 mb-6">
+                    <i data-lucide="users" class="w-8 h-8 text-neon-purple"></i>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-6">Become a Prompt Engineer</h2>
+                <p class="text-xl text-slate-400 mb-8">
+                    The AI is only as good as the system prompt. We are looking for contributors to tweak the <code class="text-neon-cyan">system-prompt</code> setting in <code class="bg-slate-800 px-1 rounded text-xs">config.yml</code>.
+                </p>
+                <div class="glass-panel p-6 rounded-xl text-left mb-8">
+                    <div class="flex items-start gap-4">
+                        <i data-lucide="lightbulb" class="text-yellow-400 w-6 h-6 mt-1"></i>
+                        <div>
+                            <h4 class="font-bold text-white">How it works</h4>
+                            <p class="text-slate-400 text-sm mt-1">
+                                If you find a prompt structure that makes the AI generate consistent roofs or non-floating trees, share it in our Discord! Best contributors get a special "Architect" role in our Discord and credit in the plugin `plugin.yml`.
+                            </p>
+                        </div>
                     </div>
                 </div>
+                <a href="https://discord.gg/jr9rC9fQfA" target="_blank" class="px-8 py-3 rounded-lg border border-slate-600 hover:bg-slate-800 text-white font-semibold transition-all flex items-center justify-center gap-2 mx-auto w-fit">
+                    <i data-lucide="message-square" class="w-5 h-5"></i>
+                    Join the Discord
+                </a>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <section id="community" class="py-20 bg-gradient-to-b from-void-dark to-void-darker border-t border-slate-800">
-        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <div class="inline-block p-3 rounded-full bg-neon-purple/10 mb-6">
-                <i data-lucide="users" class="w-8 h-8 text-neon-purple"></i>
+        <footer class="py-8 border-t border-slate-800 text-center">
+            <div class="flex justify-center items-center gap-2 mb-4">
+                <i data-lucide="box" class="text-slate-600"></i>
+                <span class="font-bold text-slate-500">GenesisX</span>
             </div>
-            <h2 class="text-3xl font-bold text-white mb-6">Become a Prompt Engineer</h2>
-            <p class="text-xl text-slate-400 mb-8">
-                The AI is only as good as the system prompt. We are looking for contributors to tweak the <code class="text-neon-cyan">system-prompt</code> setting in <code class="bg-slate-800 px-1 rounded text-sm">config.yml</code>.
+            <p class="text-slate-600 text-sm">
+                Not affiliated with Mojang or Microsoft. <br>
+                Use at your own risk. Backup your worlds before generating.
             </p>
-            
-            <div class="glass-panel p-6 rounded-xl text-left mb-8">
-                <div class="flex items-start gap-4">
-                    <i data-lucide="lightbulb" class="text-yellow-400 w-6 h-6 mt-1"></i>
-                    <div>
-                        <h4 class="font-bold text-white">How it works</h4>
-                        <p class="text-slate-400 text-sm mt-1">
-                            If you find a prompt structure that makes the AI generate consistent roofs or non-floating trees, share it in our Discord! Best contributors get a special "Architect" role in our Discord and credit in the plugin `plugin.yml`.
-                        </p>
-                    </div>
-                </div>
-            </div>
-
-            <a href="https://discord.gg/jr9rC9fQfA" target="_blank" class="px-8 py-3 rounded-lg border border-slate-600 hover:bg-slate-800 text-white font-semibold transition-all flex items-center justify-center gap-2 mx-auto w-fit">
-                <i data-lucide="message-square" class="w-5 h-5"></i>
-                Join the Discord
-            </a>
-        </div>
-    </section>
-
-    <footer class="py-8 border-t border-slate-800 text-center">
-        <div class="flex justify-center items-center gap-2 mb-4">
-            <i data-lucide="box" class="text-slate-600"></i>
-            <span class="font-bold text-slate-500">GenesisX</span>
-        </div>
-        <p class="text-slate-600 text-sm">
-            Not affiliated with Mojang or Microsoft. <br>
-            Use at your own risk. Backup your worlds before generating.
-        </p>
-    </footer>
+        </footer>
+    </div>
 
     <div id="download-modal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-void-darker/60 backdrop-blur-0">
         <div class="modal-content glass-panel max-w-md w-full p-8 rounded-2xl shadow-2xl border-neon-purple/20">
@@ -320,13 +358,12 @@ api-key: "YOUR_API_KEY_HERE"</pre>
                 </div>
                 <h3 class="text-2xl font-bold text-white mb-2 tracking-tight">Access GenesisX</h3>
                 <p class="text-slate-400 mb-8">Select your preferred platform to download the plugin.</p>
-                
                 <div class="flex flex-col gap-3">
                     <a href="https://modrinth.com/plugin/genesisx" target="_blank" class="w-full py-3.5 rounded-xl bg-[#1BD964] hover:bg-[#1BD964]/90 text-void-darker font-bold transition-all flex items-center justify-center gap-2 group">
                         <i data-lucide="download-cloud" class="w-5 h-5 group-hover:-translate-y-0.5 transition-transform"></i>
                         Download from Modrinth
                     </a>
-                    <a href="https://www.spigotmc.org/resources/genesisx.131152/" target="_blank" class="w-full py-3.5 rounded-xl bg-[#E79A34] hover:bg-[#E79A34]/90 text-void-darker font-bold transition-all flex items-center justify-center gap-2 group">
+                    <a href="https://www.spigotmc.org/resources/genesisx.131168/" target="_blank" class="w-full py-3.5 rounded-xl bg-[#E79A34] hover:bg-[#E79A34]/90 text-void-darker font-bold transition-all flex items-center justify-center gap-2 group">
                         <i data-lucide="external-link" class="w-5 h-5 group-hover:rotate-12 transition-transform"></i>
                         Download from SpigotMC
                     </a>
@@ -339,30 +376,236 @@ api-key: "YOUR_API_KEY_HERE"</pre>
     </div>
 
     <script>
+        let inputBuffer = "";
+        let mouseX = 0;
+        let mouseY = 0;
+
+        window.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+        });
+
+        window.addEventListener('keydown', (e) => {
+            inputBuffer += e.key.toLowerCase();
+            if (inputBuffer.endsWith("tnt")) {
+                triggerTNT();
+                inputBuffer = "";
+            }
+            if (inputBuffer.length > 15) inputBuffer = inputBuffer.substring(1);
+        });
+
+        function triggerTNT() {
+            const tnt = document.createElement('div');
+            tnt.id = 'tnt-entity';
+            tnt.innerText = '🧨';
+            tnt.style.left = (mouseX - 24) + 'px';
+            tnt.style.top = (mouseY - 24) + 'px';
+            tnt.classList.add('animate-tnt-pulse');
+            document.body.appendChild(tnt);
+
+            const sssText = document.createElement('div');
+            sssText.innerText = 'Ssssss...';
+            sssText.className = 'fixed font-mono font-bold text-red-500 z-[10003] text-xl';
+            sssText.style.left = (mouseX + 30) + 'px';
+            sssText.style.top = (mouseY - 40) + 'px';
+            document.body.appendChild(sssText);
+
+            setTimeout(() => {
+                tnt.remove();
+                sssText.remove();
+                
+                const explosion = document.createElement('div');
+                explosion.className = 'fixed z-[10004] rounded-full bg-white opacity-80';
+                explosion.style.left = mouseX + 'px';
+                explosion.style.top = mouseY + 'px';
+                explosion.style.width = '10px';
+                explosion.style.height = '10px';
+                explosion.style.transform = 'translate(-50%, -50%)';
+                document.body.appendChild(explosion);
+
+                explosion.animate([
+                    { width: '0px', height: '0px', opacity: 1 },
+                    { width: '1500px', height: '1500px', opacity: 0 }
+                ], { duration: 500, easing: 'ease-out' }).onfinish = () => explosion.remove();
+
+                document.body.classList.add('animate-shake');
+                
+                const elements = document.querySelectorAll('#main-content h1, #main-content h2, #main-content h3, #main-content p, #main-content span, #main-content button, #main-content a, #main-content i, #main-nav div');
+                elements.forEach(el => {
+                    const dx = (Math.random() - 0.5) * 150;
+                    const dy = (Math.random() - 0.5) * 150;
+                    const dr = (Math.random() - 0.5) * 45;
+                    el.style.transition = 'transform 0.8s cubic-bezier(0.17, 0.67, 0.83, 0.67), color 0.5s';
+                    el.style.transform = `translate(${dx}px, ${dy}px) rotate(${dr}deg)`;
+                    if (Math.random() > 0.5) el.style.color = '#ef4444';
+                });
+                
+                setTimeout(() => {
+                    document.body.classList.remove('animate-shake');
+                    setTimeout(() => {
+                        elements.forEach(el => {
+                            el.style.transform = '';
+                            el.style.color = '';
+                        });
+                    }, 4000);
+                }, 500);
+            }, 1500);
+        }
+
+        window.addEventListener('load', () => {
+            const canvas = document.getElementById('intro-canvas');
+            const ctx = canvas.getContext('2d');
+            const overlay = document.getElementById('intro-overlay');
+            const content = document.getElementById('main-content');
+            const banner = document.getElementById('alpha-banner');
+            const nav = document.getElementById('main-nav');
+            
+            let width = canvas.width = window.innerWidth;
+            let height = canvas.height = window.innerHeight;
+            
+            const particles = [];
+            let star = {
+                x: -100,
+                y: height / 2,
+                size: 60,
+                rotation: 0,
+                opacity: 0,
+                time: 0,
+                glow: 0
+            };
+            
+            let stage = 'flying'; 
+            let blurVal = 60;
+            let revealProgress = 0;
+
+            function createParticle(x, y, color) {
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 2 + 0.5;
+                return {
+                    x, y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed,
+                    life: 1.0,
+                    size: Math.random() * 2 + 1,
+                    color: color
+                };
+            }
+
+            function drawStar(x, y, radius, rotation, opacity, glow) {
+                ctx.save();
+                ctx.translate(x, y);
+                ctx.rotate(rotation);
+                ctx.globalAlpha = opacity;
+                const gradient = ctx.createRadialGradient(0, 0, 0, 0, 0, radius);
+                gradient.addColorStop(0, '#fff');
+                gradient.addColorStop(0.3, '#a855f7');
+                gradient.addColorStop(1, 'transparent');
+                ctx.fillStyle = gradient;
+                ctx.shadowBlur = (radius * 0.5) + glow;
+                ctx.shadowColor = '#06b6d4';
+                ctx.beginPath();
+                for (let i = 0; i < 4; i++) {
+                    ctx.rotate(Math.PI / 2);
+                    ctx.moveTo(0, 0);
+                    ctx.quadraticCurveTo(radius * 0.25, radius * 0.25, radius, 0);
+                    ctx.quadraticCurveTo(radius * 0.25, -radius * 0.25, 0, 0);
+                }
+                ctx.fill();
+                ctx.restore();
+            }
+
+            function animate() {
+                ctx.fillStyle = '#020617';
+                ctx.fillRect(0, 0, width, height);
+                if (stage === 'flying') {
+                    star.time += 0.0105;
+                    star.x = (width * 0.5) + Math.cos(star.time * 1.3) * (width * 0.35);
+                    star.y = (height * 0.5) + Math.sin(star.time * 2.1) * (height * 0.25);
+                    star.opacity = Math.min(star.opacity + 0.0075, 1);
+                    star.rotation += 0.0225;
+                    if (Math.random() > 0.5) {
+                        particles.push(createParticle(star.x, star.y, Math.random() > 0.5 ? '#a855f7' : '#06b6d4'));
+                    }
+                    drawStar(star.x, star.y, star.size + Math.sin(star.time * 8) * 4, star.rotation, star.opacity, 0);
+                    if (star.time > 4.125) {
+                        stage = 'centering';
+                    }
+                } else if (stage === 'centering') {
+                    const targetX = width / 2;
+                    const targetY = height / 2;
+                    star.x += (targetX - star.x) * 0.06;
+                    star.y += (targetY - star.y) * 0.06;
+                    star.rotation += 0.045;
+                    star.glow += 0.75;
+                    drawStar(star.x, star.y, star.size, star.rotation, star.opacity, star.glow);
+                    if (Math.abs(star.x - targetX) < 2 && Math.abs(star.y - targetY) < 2) {
+                        stage = 'blooming';
+                    }
+                } else if (stage === 'blooming') {
+                    revealProgress += 0.015;
+                    star.size += 22.5;
+                    star.opacity *= 0.94;
+                    star.rotation += 0.12;
+                    blurVal = Math.max(0, 60 - (revealProgress * 150));
+                    content.style.filter = `blur(${blurVal}px)`;
+                    content.style.opacity = Math.min(1, revealProgress * 2);
+                    if (star.opacity > 0) {
+                        drawStar(star.x, star.y, star.size, star.rotation, star.opacity, star.glow);
+                    }
+                    if (revealProgress >= 1) {
+                        overlay.classList.add('fade-out');
+                        document.body.classList.remove('overflow-hidden');
+                        setTimeout(() => {
+                            banner.classList.remove('-translate-y-full');
+                            nav.style.top = banner.offsetHeight + 'px';
+                        }, 3000);
+                        setTimeout(() => overlay.remove(), 1000);
+                        return;
+                    }
+                }
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    const p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.0105;
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+                    ctx.globalAlpha = p.life * star.opacity;
+                    ctx.fillStyle = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.globalAlpha = 1;
+                requestAnimationFrame(animate);
+            }
+            animate();
+            window.addEventListener('resize', () => {
+                width = canvas.width = window.innerWidth;
+                height = canvas.height = window.innerHeight;
+            });
+        });
+
         lucide.createIcons();
-
         const modal = document.getElementById('download-modal');
-
         function openModal() {
             modal.classList.remove('closing');
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';
         }
-
         function closeModal() {
             modal.classList.add('closing');
-            
             setTimeout(() => {
                 modal.classList.remove('active');
                 modal.classList.remove('closing');
                 document.body.style.overflow = 'auto';
             }, 300);
         }
-
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
         });
-
         document.querySelectorAll('a[href^="#"]').forEach(anchor => {
             anchor.addEventListener('click', function (e) {
                 e.preventDefault();
